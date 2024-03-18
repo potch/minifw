@@ -15,14 +15,25 @@ export const on = (target, event, handler, opts) => {
 
 let context = false;
 
-export const signal = (value) => {
+export const event = () => {
   const watchers = new Set();
+  return [
+    (...args) => watchers.forEach((fn) => fn(...args)),
+    (fn) => {
+      watchers.add(fn);
+      return () => watchers.delete(fn);
+    },
+  ];
+};
+
+export const signal = (value) => {
+  const [emit, watch] = event();
 
   return {
     set value(v) {
       if (value !== v) {
         value = v;
-        watchers.forEach((d) => d());
+        emit();
       }
     },
     get value() {
@@ -32,15 +43,12 @@ export const signal = (value) => {
     peek() {
       return value;
     },
-    watch(fn) {
-      watchers.add(fn);
-      return () => watchers.delete(fn);
-    },
+    watch,
   };
 };
 
 export const computed = (fn) => {
-  const watchers = new Set();
+  const [emit, watch] = event();
   let teardown;
 
   context = new Set();
@@ -52,7 +60,7 @@ export const computed = (fn) => {
     const v = fn();
     if (v !== value) {
       value = v;
-      watchers.forEach((d) => d());
+      emit();
     }
   };
 
@@ -68,9 +76,9 @@ export const computed = (fn) => {
       if (!watchers.size) {
         teardown = deps.map((d) => d.watch(update));
       }
-      watchers.add(fn);
+      const unwatch = watch(fn);
       return () => {
-        watchers.delete(fn);
+        unwatch();
         if (!watchers.size) teardown.forEach((fn) => fn());
       };
     },

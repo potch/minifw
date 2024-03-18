@@ -1,12 +1,12 @@
 {
   "name": "@potch/minifw",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "dinky framework for dinky apps",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm run build:minify && npm run build:zip && ls -l index*",
+    "build": "npm run build:minify && npm run build:zip && ls -lh index*",
     "build:minify": "cat index.js | terser -c -m --module > index.min.js",
     "build:zip": "cat index.min.js | gzip > index.min.gz.js"
   },
