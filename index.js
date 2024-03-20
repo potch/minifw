@@ -49,6 +49,7 @@ export const signal = (value) => {
 
 export const computed = (fn) => {
   const [emit, watch] = event();
+  let watchCount = 0;
   let teardown;
 
   context = new Set();
@@ -73,13 +74,15 @@ export const computed = (fn) => {
       return value;
     },
     watch(fn) {
-      if (!watchers.size) {
+      if (!watchCount) {
         teardown = deps.map((d) => d.watch(update));
       }
       const unwatch = watch(fn);
+      watchCount++;
       return () => {
         unwatch();
-        if (!watchers.size) teardown.forEach((fn) => fn());
+        watchCount--;
+        if (!watchCount) teardown.forEach((fn) => fn());
       };
     },
   };
