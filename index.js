@@ -1,22 +1,35 @@
-export const $$ = (selector, scope = document) =>
-  scope.querySelectorAll(selector);
-export const $ = (selector, scope = document) => scope.querySelector(selector);
+// querySelector shorthands
+const $$ = (selector, scope = document) => scope.querySelectorAll(selector);
+const $ = (selector, scope = document) => scope.querySelector(selector);
 
-export const dom = (tag, props, ...children) => {
-  const el = Object.assign(document.createElement(tag), props);
+// deep merge assignment
+const assign = (a, b) => {
+  for (let [k, v] of Object.entries(b || {})) {
+    if (typeof a[k] === typeof v && typeof v === "object") {
+      assign(a[k], v);
+    } else {
+      a[k] = v;
+    }
+  }
+  return a;
+};
+
+// create DOM, props arg optional
+const dom = (tag, props, ...children) => {
+  let el = assign(document.createElement(tag), props);
   el.append(...children);
   return el;
 };
 
-export const on = (target, event, handler, opts) => {
+// event listeners, returns a callback to un-listen
+const on = (target, event, handler, opts) => {
   target.addEventListener(event, handler, opts);
   return () => target.removeEventListener(event, handler, opts);
 };
 
-let context = false;
-
-export const event = () => {
-  const watchers = new Set();
+// event primitive, returns [emit, watch] fns
+const event = () => {
+  let watchers = new Set();
   return [
     (...args) => watchers.forEach((fn) => fn(...args)),
     (fn) => {
@@ -26,14 +39,23 @@ export const event = () => {
   ];
 };
 
-export const signal = (value) => {
-  const [emit, watch] = event();
+// used for computed/effect bookkeeping
+let context = false;
+let batchSet = null;
+
+// reactive value primitive
+const signal = (value) => {
+  let [emit, watch] = event();
 
   return {
     set value(v) {
       if (value !== v) {
         value = v;
-        emit();
+        if (batchSet) {
+          batchSet.add(emit);
+        } else {
+          emit();
+        }
       }
     },
     get value() {
@@ -47,54 +69,49 @@ export const signal = (value) => {
   };
 };
 
-export const computed = (fn) => {
-  const [emit, watch] = event();
-  let watchCount = 0;
-  let teardown;
-
+// pure side effect
+// runs when any signal referenced in `fn` by `.value` changes
+const effect = (fn) => {
   context = new Set();
-  let value = fn();
-  const deps = [...context];
-  context = false;
-
+  let inUpdate = false;
   const update = () => {
-    const v = fn();
-    if (v !== value) {
-      value = v;
-      emit();
+    if (!inUpdate) {
+      inUpdate = true;
+      fn();
+      inUpdate = false;
     }
   };
+  fn();
+  let deps = [...context];
+  context = false;
 
+  let teardown = deps.map((d) => d.watch(update));
+  return () => teardown.forEach((t) => t());
+};
+
+// derived reactive value, composition of a signal and an effect
+// auto updates when any signal referenced in `fn` by `.value` changes
+const computed = (fn) => {
+  let s = signal();
+  effect(() => (s.value = fn()));
   return {
     get value() {
-      if (context) context.add(this);
-      return value;
+      return s.value;
     },
     peek() {
-      return value;
+      return s.peek();
     },
     watch(fn) {
-      if (!watchCount) {
-        teardown = deps.map((d) => d.watch(update));
-      }
-      const unwatch = watch(fn);
-      watchCount++;
-      return () => {
-        unwatch();
-        watchCount--;
-        if (!watchCount) teardown.forEach((fn) => fn());
-      };
+      return s.watch(fn);
     },
   };
 };
 
-export const effect = (fn) => {
-  context = new Set();
+const batch = (fn) => {
+  batchSet = new Set();
   fn();
-  const deps = [...context];
-  context = false;
-
-  const teardown = deps.map((d) => d.watch(fn));
-
-  return () => teardown.forEach((fn) => fn());
+  batchSet.forEach((fn) => fn());
+  batchSet = null;
 };
+
+export { $$, $, assign, dom, on, event, signal, computed, effect, batch };
