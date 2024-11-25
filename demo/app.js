@@ -1,5 +1,5 @@
 import createRouter from "../router.js";
-import { dom, signal, effect } from "../index.js";
+import { dom, signal, effect, on } from "../index.js";
 
 export const router = createRouter();
 
@@ -50,8 +50,29 @@ router.handle("/", () => {
 });
 
 router.handle("/about", ({ onMount }) => {
-  onMount(() => console.log("mounted!"));
-  return dom("div", {}, nav, dom("p", {}, "About"));
+  const count = signal(1);
+  const counter = dom("span", { id: "counter" }, count.val);
+
+  effect(() => {
+    counter.innerText = count.val;
+  });
+
+  const button = dom("button", {}, "inc");
+
+  onMount(() => {
+    on(button, "click", () => {
+      console.log("click!");
+      count.val = count.val + 1;
+    });
+  });
+
+  return dom(
+    "div",
+    {},
+    nav,
+    dom("p", {}, "About"),
+    dom("div", {}, button, " ", counter)
+  );
 });
 
 router.handle("/party/[time]", ({ params }) => {
