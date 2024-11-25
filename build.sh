@@ -25,6 +25,7 @@ function build() {
 echo "\nbuilding...\n"
 build index.js
 build lisp.js
+build router.js
 build server.js
 build ssr.js
 echo "\ndone!"

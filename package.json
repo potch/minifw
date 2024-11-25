@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx onchange -ik *.js build.sh 'demo/*' -- npm run go",
-    "go": "./build.sh && node demo/pql.js",
+    "go": "./build.sh && node demo/server.js",
     "demo": "tinyserve . -w index.min.js",
     "server": "npx onchange -ik 'demo/*' -- node demo/server.js"
   },

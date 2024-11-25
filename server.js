@@ -1,29 +1,7 @@
 import { Server as httpServer } from "node:http";
+import router from "./router.js";
 
 const isRE = (o, fallback) => (o instanceof RegExp ? o : fallback);
-
-const router = (routes = []) => ({
-  handle(path, handler) {
-    const pattern =
-      isRE(path) ||
-      new RegExp(
-        "^" +
-          path.replace(/\[([^\]]+)\]/g, (_, param) => `(?<${param}>[^\\/]+)`) +
-          "$"
-      );
-    routes.push({
-      path,
-      pattern,
-      handler,
-    });
-  },
-
-  route: (path) =>
-    routes.reduce((list, route) => {
-      const match = route.pattern.exec(path);
-      return match ? [...list, { ...route, params: match.groups }] : list;
-    }, []),
-});
 
 class Server extends httpServer {
   constructor({ host = new URL("http://localhost:8080/"), routes = [] } = {}) {

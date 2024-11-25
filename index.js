@@ -3,13 +3,13 @@ let context = 0;
 let batchSet = 0;
 
 // file size optimizations
-const doc = document;
-const call = (fn) => fn();
-const isObj = (o) => typeof o === "object";
-const each = (a, fn) => a.forEach(fn);
+let doc = document;
+let call = (fn) => fn();
+let isObj = (o) => typeof o === "object";
+let each = (a, fn) => a.forEach(fn);
 
 // credit to @developit/preact for logic here
-const setProp = (el, key, value) => {
+let setProp = (el, key, value) => {
   // situations where we always set prop
   // is value a function, object, or is the key an extant prop?
   // if el[key] is object, deep merge it, else set it.
@@ -29,7 +29,7 @@ const setProp = (el, key, value) => {
 };
 
 // deep merge assignment
-const assign = (a, b) => {
+let assign = (a, b) => {
   for (let [k, v] of Object.entries(b || {})) {
     if (a.nodeType) {
       setProp(a, k, v);
@@ -44,20 +44,20 @@ const assign = (a, b) => {
 
 // create DOM, hyperscript compatible
 // works lovely with @developit/htm
-const dom = (tag, props, ...children) => {
+let dom = (tag, props, ...children) => {
   let el = assign(doc.createElement(tag), props);
   el.append(...children);
   return el;
 };
 
 // event listeners, returns a callback to un-listen
-const on = (target, ...args) => {
+let on = (target, ...args) => {
   target.addEventListener(...args);
   return (_) => target.removeEventListener(...args);
 };
 
 // event primitive, returns [emit, watch] fns
-const event = (watchers = new Set()) => [
+let event = (watchers = new Set()) => [
   (...args) => each(watchers, (fn) => fn(...args)),
   (fn) => {
     watchers.add(fn);
@@ -66,7 +66,7 @@ const event = (watchers = new Set()) => [
 ];
 
 // reactive value primitive
-const signal = (value, [emit, watch] = event()) => ({
+let signal = (value, [emit, watch] = event()) => ({
   set val(v) {
     if (value !== v) {
       value = v;
@@ -92,7 +92,7 @@ const signal = (value, [emit, watch] = event()) => ({
 // pure side effect
 // runs when any signal referenced in `fn` by `.value` changes
 // use signal.peek in effects to avoid dependency tracking
-const effect = (fn) => {
+let effect = (fn) => {
   let inUpdate = 0;
   let teardown;
   let update = (_) => {
@@ -112,7 +112,7 @@ const effect = (fn) => {
 
 // derived reactive value, composition of a signal and an effect
 // auto updates when any signal referenced in `fn` by `.value` changes
-const computed = (fn) => {
+let computed = (fn) => {
   let s = signal();
   effect((_) => (s.val = fn()));
   return {
@@ -125,21 +125,11 @@ const computed = (fn) => {
 };
 
 // update a bunch of signals at once, get deduped effects after
-const batch = (fn) => {
+let batch = (fn) => {
   batchSet = new Set();
   fn();
   each(batchSet, call);
   batchSet = 0;
 };
 
-export default {
-  $: (selector, scope = doc) => scope.querySelector(selector),
-  assign,
-  dom,
-  on,
-  event,
-  signal,
-  computed,
-  effect,
-  batch,
-};
+export { assign, dom, on, event, signal, computed, effect, batch };

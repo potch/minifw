@@ -43,19 +43,15 @@ const nodeMock = {
             .map(([a, v]) => ` ${a}="${v.toString()}"`)
             .join("") +
           ">" +
-          +(voids.has(tagName) ? "" : `</${tagName}>`)
+          cn(this)
+            .map((n) => n.outerHTML)
+            .join("") +
+          (voids.has(tagName) ? "" : `</${tagName}>`)
         );
       case 3:
         return this.textContent;
     }
     return "";
-  },
-  get innerHTML() {
-    return cn(this).length
-      ? cn(this)
-          .map((n) => n.outerHTML)
-          .join("")
-      : "";
   },
 };
 
