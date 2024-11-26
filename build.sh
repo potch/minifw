@@ -25,7 +25,7 @@ function build() {
 
 echo "\nbuilding...\n"
 echo "# file sizes\n" > sizes.md
-echo 'file | original | minified | gzip\n --- | ---: | ---: | ---: ' >> sizes.md
+echo 'file | original | minified | gzip\n :--- | ---: | ---: | ---: ' >> sizes.md
 
 # npx rollup demo/browser.js --inlineDynamicImports --external="htm" > bundle.js
 

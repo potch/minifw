@@ -10,3 +10,5 @@ use at your own risk.
 - **router.js** - a basic router
 - **server.js** - an express-like sev
 - **ssr.js** - just enough fake DOM for `fw.js` to work in non-browser contexts
+
+[current file sizes](./sizes.md)
