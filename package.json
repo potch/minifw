@@ -1,8 +1,8 @@
 {
   "name": "@potch/minifw",
-  "version": "1.4.0",
-  "description": "dinky framework for dinky apps",
-  "main": "index.js",
+  "version": "2.0.0",
+  "description": "dinky libraries for dinky apps",
+  "main": "src/fw.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
