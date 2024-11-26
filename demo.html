@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>minifw test</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 2rem auto;
+        max-width: 700px;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+      }
+      label {
+        display: grid;
+        grid-template-columns: 3rem 1fr 3rem;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      import { signal, effect, computed, $, dom, on } from "./index.min.js";
+
+      const num = signal(0.5);
+      const format = signal(false);
+      const percent = computed(() => Math.floor(num.value * 10) * 10 + "%");
+
+      const _ = new Proxy(dom, {
+        get:
+          (dom, tag) =>
+          (...args) =>
+            dom(tag, ...args),
+      });
+
+      const form = _.form(
+        {
+          onsubmit: (e) => e.preventDefault(),
+        },
+        _.label(
+          {},
+          "num",
+          _.input({
+            name: "num",
+            type: "range",
+            min: 0,
+            max: 1,
+            step: 0.001,
+            value: num.value,
+            oninput: (e) => (num.value = parseFloat(e.target.value)),
+          }),
+          _.span(
+            { className: "num-val", style: { color: "red" } },
+            percent.value
+          )
+        ),
+        _.button({}, "toggle format")
+      );
+
+      $("#app").append(form);
+
+      on($("button", form), "click", (e) => {
+        format.value = !format.value;
+      });
+
+      effect(() => {
+        form.elements.num.value = num.value;
+        $(".num-val", form).style.color = num.value < 0.5 ? "red" : "green";
+      });
+
+      effect(() => {
+        let nv = num.value;
+        let pv = percent.value;
+        $(".num-val", form).innerText = format.value ? nv : pv;
+      });
+    </script>
+  </body>
+</html>
