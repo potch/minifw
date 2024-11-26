@@ -6,7 +6,7 @@ let batchSet = 0;
 let doc = document;
 let call = (fn) => fn();
 let isObj = (o) => typeof o === "object";
-let each = (a, fn) => a.forEach(fn);
+let map = (a, fn) => [...a].map(fn);
 
 // credit to @developit/preact for logic here
 let setProp = (el, key, value) => {
@@ -58,7 +58,7 @@ let on = (target, ...args) => {
 
 // event primitive, returns [emit, watch] fns
 let event = (watchers = new Set()) => [
-  (...args) => each(watchers, (fn) => fn(...args)),
+  (...args) => map(watchers, (fn) => fn(...args)),
   (fn) => {
     watchers.add(fn);
     return (_) => watchers.delete(fn);
@@ -107,7 +107,7 @@ let effect = (fn) => {
   teardown = [...context].map((d) => d.watch(update));
   context = 0;
 
-  return (_) => each(teardown, call);
+  return (_) => map(teardown, call);
 };
 
 // derived reactive value, composition of a signal and an effect
@@ -128,7 +128,7 @@ let computed = (fn) => {
 let batch = (fn) => {
   batchSet = new Set();
   fn();
-  each(batchSet, call);
+  map(batchSet, call);
   batchSet = 0;
 };
 

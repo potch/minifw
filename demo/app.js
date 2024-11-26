@@ -1,5 +1,17 @@
-import createRouter from "../router.js";
-import { dom, signal, effect, on } from "../index.js";
+import createRouter from "../src/router.js";
+import html from "./html.js";
+
+import nav from "./nav.js";
+
+const loadingRoutes = {};
+const loadRoute =
+  (file) =>
+  async (...args) => {
+    if (!loadingRoutes[file]) {
+      loadingRoutes[file] = import(file).then((i) => i.default);
+    }
+    return (await loadingRoutes[file])(...args);
+  };
 
 export const router = createRouter();
 
@@ -15,7 +27,15 @@ export const template = ({ title, content }) => `
       }
       html { font: normal 20px sans-serif }
       body { margin: 2rem }
+      nav { display: flex; gap: .5rem }
     </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "htm": "/node_modules/htm/dist/htm.mjs"
+        }
+      }
+    </script>
     <script type="module" src="/demo/browser.js"></script>
   </head>
   <body>
@@ -24,66 +44,24 @@ export const template = ({ title, content }) => `
 </html>
 `;
 
-const nav = dom(
-  "nav",
-  {},
-  dom("a", { href: "/" }, "home"),
-  " ",
-  dom("a", { href: "/about" }, "about"),
-  " ",
-  dom("a", { href: "/party/farty" }, "party")
-);
-
 router.handle("/", () => {
-  return dom(
-    "div",
-    {},
-    nav,
-    dom("p", {}, "Welcome Home!"),
-    dom(
-      "form",
-      { action: "/search" },
-      dom("input", { name: "query" }),
-      dom("button", {}, "go")
-    )
-  );
+  return html`<div>
+    ${nav}
+    <p>Welcome Home!</p>
+    <form action="/search">
+      <input name="query" />
+      <button>go</button>
+    </form>
+  </div>`;
 });
 
-router.handle("/about", ({ onMount }) => {
-  const count = signal(1);
-  const counter = dom("span", { id: "counter" }, count.val);
-
-  effect(() => {
-    counter.innerText = count.val;
-  });
-
-  const button = dom("button", {}, "inc");
-
-  onMount(() => {
-    on(button, "click", () => {
-      console.log("click!");
-      count.val = count.val + 1;
-    });
-  });
-
-  return dom(
-    "div",
-    {},
-    nav,
-    dom("p", {}, "About"),
-    dom("div", {}, button, " ", counter)
-  );
-});
+router.handle("/about", loadRoute("./about.js"));
 
 router.handle("/party/[time]", ({ params }) => {
-  return dom("div", {}, nav, dom("p", {}, "Party on, ", params.time));
+  return html`<div>
+    ${nav}
+    <p>Party on, ${params.time}</p>
+  </div>`;
 });
 
-router.handle("/search", ({ url }) => {
-  return dom(
-    "div",
-    {},
-    nav,
-    dom("p", {}, "Searching for: ", url.searchParams.get("query"))
-  );
-});
+router.handle("/search", loadRoute("./search.js"));

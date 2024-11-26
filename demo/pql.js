@@ -1,4 +1,4 @@
-import { run, evaluate } from "../lisp.js";
+import { run, evaluate } from "../src/lisp.js";
 
 const schema = {
   query: async (context) => {

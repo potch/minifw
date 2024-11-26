@@ -1,18 +1,24 @@
-import { on, event } from "../index.js";
+import { on, event } from "../src/fw.js";
 
 on(window, "DOMContentLoaded", async () => {
-  const { router } = await import("/demo/app.js");
+  const { router } = await import("./app.js");
 
-  const navigate = async (url) => {
+  const currentMounts = [];
+
+  const navigate = async (url, e) => {
     const routes = router.route(url.pathname);
+
+    while (currentMounts.length) {
+      currentMounts.pop()?.call();
+    }
 
     if (routes.length) {
       const [emitOnMount, onMount] = event();
       const { params, handler } = routes[0];
       const result = await handler({ params, onMount, url });
       document.body.replaceChildren(result);
-      history.replaceState({}, "", url);
-      setTimeout(emitOnMount, 0);
+      history.pushState({}, "", url);
+      currentMounts.push(...emitOnMount());
     }
   };
 
@@ -21,6 +27,10 @@ on(window, "DOMContentLoaded", async () => {
       e.preventDefault();
       await navigate(new URL(e.target.href));
     }
+  });
+
+  on(window, "popstate", () => {
+    navigate(new URL(window.location));
   });
 
   navigate(new URL(window.location));

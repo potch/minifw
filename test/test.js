@@ -1,4 +1,4 @@
-import { document } from "./ssr.js";
+import { document } from "../src/ssr.js";
 import htm from "htm";
 globalThis.document = document;
 

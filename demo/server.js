@@ -1,14 +1,15 @@
-import { Server } from "../server.js";
-import { document } from "../ssr.js";
-import { dirname, extname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { Server } from "../src/server.js";
+import { document } from "../src/ssr.js";
+import { extname } from "node:path";
 import { readFile, stat } from "node:fs/promises";
 
 globalThis.document = document;
 
 const MIMES = {
   js: "text/javascript",
+  mjs: "text/javascript",
   json: "application/json",
+  css: "text/css",
 };
 
 const start = async () => {
@@ -17,16 +18,19 @@ const start = async () => {
   const server = new Server();
 
   server.get(/.*/, (req, res) => {
-    console.log(req.method, req.url.pathname + req.url.search);
-    req.addListener("close", () => console.log(res.statusCode));
+    req.addListener("close", () => {
+      console.log(
+        res.statusCode,
+        req.method,
+        req.url.pathname + req.url.search
+      );
+    });
   });
 
   server.get(/.*\.\w+/, async (req, res) => {
     const file = req.url.pathname;
-    console.log("fileget", file);
     const ext = extname(file).slice(1);
     const path = process.cwd() + file;
-    console.log(file, ext, path);
     try {
       await stat(path);
       res.setHeader("content-type", MIMES[ext] ?? "text/plain");
