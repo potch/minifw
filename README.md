@@ -8,7 +8,7 @@ use at your own risk.
 - **channel.js** - client and server wrappers of a Server-Sent Events channel
 - **lisp.js** - an s-expression language
 - **router.js** - a basic router
-- **server.js** - an express-like sev
+- **server.js** - an express-like http server
 - **ssr.js** - just enough fake DOM for `fw.js` to work in non-browser contexts
 
 [current file sizes](./sizes.md)
