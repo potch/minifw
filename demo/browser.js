@@ -3,22 +3,23 @@ import { on, event } from "../src/fw.js";
 on(window, "DOMContentLoaded", async () => {
   const { router } = await import("./app.js");
 
-  const currentMounts = [];
+  const activeMounts = new WeakMap();
 
   const navigate = async (url, e) => {
     const routes = router.route(url.pathname);
-
-    while (currentMounts.length) {
-      currentMounts.pop()?.call();
-    }
 
     if (routes.length) {
       const [emitOnMount, onMount] = event();
       const { params, handler } = routes[0];
       const result = await handler({ params, onMount, url });
-      document.body.replaceChildren(result);
+      const el = document.body;
+      const currentMounts = activeMounts.get(el) || [];
+      while (currentMounts.length) {
+        currentMounts.pop()?.call?.();
+      }
+      el.replaceChildren(result);
       history.pushState({}, "", url);
-      currentMounts.push(...emitOnMount());
+      activeMounts.set(el, emitOnMount().flat(Infinity));
     }
   };
 

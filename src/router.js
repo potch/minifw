@@ -5,10 +5,10 @@ const router = (routes = []) => ({
         ? path
         : new RegExp(
             "^" +
-              path.replace(
-                /\[([^\]]+)\]/g,
-                (_, param) => `(?<${param}>[^\\/]+)`
-              ) +
+              path
+                .replace(/\./g, "\\.")
+                .replace(/\[([^\]]+)\]/g, (_, param) => `(?<${param}>[^\\/]+)`)
+                .replace(/\*/g, ".*?") +
               "$"
           );
     routes.push({
@@ -21,6 +21,7 @@ const router = (routes = []) => ({
   route: (path) =>
     routes.reduce((list, route) => {
       const match = route.pattern.exec(path);
+      console.log(list, route, match);
       return match ? [...list, { ...route, params: match.groups }] : list;
     }, []),
 });

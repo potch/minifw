@@ -1,6 +1,5 @@
 // used for computed/effect bookkeeping
 let context = 0;
-let batchSet = 0;
 
 // file size optimizations
 let doc = document;
@@ -70,12 +69,7 @@ let signal = (value, [emit, watch] = event()) => ({
   set val(v) {
     if (value !== v) {
       value = v;
-      // defer emits when in batch callbacks
-      if (batchSet) {
-        batchSet.add(emit);
-      } else {
-        emit();
-      }
+      emit();
     }
   },
   get val() {
@@ -93,19 +87,21 @@ let signal = (value, [emit, watch] = event()) => ({
 // runs when any signal referenced in `fn` by `.value` changes
 // use signal.peek in effects to avoid dependency tracking
 let effect = (fn) => {
-  let inUpdate = 0;
+  let inUpdate = false;
   let teardown;
-  let update = (_) => {
-    if (!inUpdate) {
-      inUpdate = 1;
-      fn();
-      inUpdate = 0;
-    }
-  };
+
   context = new Set();
   fn();
-  teardown = [...context].map((d) => d.watch(update));
-  context = 0;
+  teardown = map(context, (d) =>
+    d.watch((_) => {
+      if (!inUpdate) {
+        inUpdate = true;
+        fn();
+        inUpdate = false;
+      }
+    })
+  );
+  context = false;
 
   return (_) => map(teardown, call);
 };
@@ -124,12 +120,7 @@ let computed = (fn) => {
   };
 };
 
-// update a bunch of signals at once, get deduped effects after
-let batch = (fn) => {
-  batchSet = new Set();
-  fn();
-  map(batchSet, call);
-  batchSet = 0;
-};
+let $ = (selector, scope = doc) => scope.querySelector(selector);
+let $$ = (selector, scope = doc) => scope.querySelectorAll(selector);
 
-export { assign, dom, on, event, signal, computed, effect, batch };
+export { $, $$, assign, dom, on, event, signal, computed, effect };

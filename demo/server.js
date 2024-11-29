@@ -13,11 +13,13 @@ const MIMES = {
 };
 
 const start = async () => {
-  const { router, template } = await import("./app.js");
+  const { router, template, host } = await import("./app.js");
 
-  const server = new Server();
+  console.log();
 
-  server.get(/.*/, (req, res) => {
+  const server = new Server({ host });
+
+  server.get("*", (req, res) => {
     req.addListener("close", () => {
       console.log(
         res.statusCode,
@@ -27,7 +29,7 @@ const start = async () => {
     });
   });
 
-  server.get(/.*\.\w+/, async (req, res) => {
+  server.get("*.*", async (req, res) => {
     const file = req.url.pathname;
     const ext = extname(file).slice(1);
     const path = process.cwd() + file;
@@ -40,7 +42,7 @@ const start = async () => {
     }
   });
 
-  server.get(/.*/, async (req, res) => {
+  server.get("*", async (req, res) => {
     const routes = router.route(req.url.pathname);
     if (routes.length) {
       const { handler, params } = routes[0];

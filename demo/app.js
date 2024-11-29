@@ -13,9 +13,11 @@ const loadRoute =
     return (await loadingRoutes[file])(...args);
   };
 
+export const host = new URL("http://localhost:8080/");
+
 export const router = createRouter();
 
-export const template = ({ title, content }) => `
+export const template = ({ content }) => `
 <!doctype html>
 <html>
   <head>
