@@ -12,8 +12,10 @@ let setProp = (el, key, value) => {
   // situations where we always set prop
   // is value a function, object, or is the key an extant prop?
   // if el[key] is object, deep merge it, else set it.
-  if (value?.call || isObj(value) || key in el) {
-    isObj(el[key])
+  if (key == "ref") {
+    value.val = el;
+  } else if (isObj(value) || key in el) {
+    el[key] && isObj(el[key])
       ? assign(el[key], value)
       : (el[key] = value === null ? "" : value);
   } else {
@@ -49,7 +51,7 @@ let dom = (tag, props, ...children) => {
   return el;
 };
 
-// event listeners, returns a callback to un-listen
+// dom event listeners, returns a callback to un-listen
 let on = (target, ...args) => {
   target.addEventListener(...args);
   return (_) => target.removeEventListener(...args);

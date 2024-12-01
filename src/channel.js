@@ -11,7 +11,7 @@ export const serverChannel = ({ sendLastOnConnect = true } = {}) => {
   };
 
   const handler = (request, response) => {
-    console.log("[live] new client");
+    console.log("[channel] new client");
     listeners.add(response);
 
     response.writeHead(200, {
@@ -26,7 +26,7 @@ export const serverChannel = ({ sendLastOnConnect = true } = {}) => {
     }
 
     response.on("close", () => {
-      console.log("[live] closing");
+      console.log("[channel] closing");
       listeners.delete(response);
     });
   };
@@ -52,7 +52,7 @@ export const clientChannel = (url, cb, { withCredentials = false } = {}) => {
   connect();
 
   return () => {
-    console.log("[live] closing source");
+    console.log("[channel] closing source");
     source.close();
   };
 };

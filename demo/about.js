@@ -1,27 +1,27 @@
 import { signal, effect, on } from "../src/fw.js";
 import html from "./html.js";
-import nav from "./nav.js";
 
 export default ({ onMount }) => {
   const count = signal(1);
-  const counter = html`<span id="counter">${count.val}</span>`;
-
-  const button = html`<button>inc</button>`;
+  const counter = signal();
+  const button = signal();
 
   onMount(() => [
-    on(button, "click", () => {
+    on(button.val, "click", () => {
       count.val++;
     }),
     effect(() => {
-      counter.innerText = count.val;
+      counter.val.innerText = " " + count.val;
     }),
   ]);
 
   return html`
     <div>
-      ${nav}
       <p>About</p>
-      <div>${button} ${counter}</div>
+      <div>
+        <button ref=${button}>inc</button>
+        <span ref=${counter}> ${count.val}</span>
+      </div>
     </div>
   `;
 };

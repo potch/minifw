@@ -1,9 +1,9 @@
 import { Server } from "../src/server.js";
-import { document } from "../src/ssr.js";
+import mockDocument from "../src/ssr.js";
 import { extname } from "node:path";
 import { readFile, stat } from "node:fs/promises";
 
-globalThis.document = document;
+globalThis.document = mockDocument;
 
 const MIMES = {
   js: "text/javascript",
@@ -14,8 +14,6 @@ const MIMES = {
 
 const start = async () => {
   const { router, template, host } = await import("./app.js");
-
-  console.log();
 
   const server = new Server({ host });
 
@@ -44,12 +42,23 @@ const start = async () => {
 
   server.get("*", async (req, res) => {
     const routes = router.route(req.url.pathname);
+    const root = document.createElement("div");
     if (routes.length) {
-      const { handler, params } = routes[0];
-      const result = await handler({ params, url: req.url, onMount: () => {} });
+      for await (let route of routes) {
+        const { handler, params } = route;
+        let result = await handler({ params, url: req.url, onMount: () => {} });
+        if (result.nodeType) {
+          result = {
+            mountTo: "app",
+            el: result,
+          };
+        }
+        const mountEl = document.find(root, result.mountTo) ?? root;
+        mountEl.replaceChildren(result.el);
+      }
       res.end(
         template({
-          content: result.outerHTML,
+          content: root.innerHTML,
         })
       );
     } else {

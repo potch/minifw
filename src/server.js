@@ -7,7 +7,7 @@ class Server extends httpServer {
   constructor({ host = new URL("http://localhost:8080/"), routes = [] } = {}) {
     super((req, res) => this.handler(req, res).catch(console.error));
 
-    Object.assign(this, router(routes), { host });
+    Object.assign(this, router({ routes }), { host });
   }
 
   async handler(req, res) {

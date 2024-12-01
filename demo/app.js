@@ -18,19 +18,13 @@ export const host = new URL("http://localhost:8080/");
 export const router = createRouter();
 
 export const template = ({ content }) => `
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf8">
     <title>My Site</title>
-    <style>
-      * {
-        box-sizing: border-box;
-      }
-      html { font: normal 20px sans-serif }
-      body { margin: 2rem }
-      nav { display: flex; gap: .5rem }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/demo/style.css">
     <script type="importmap">
       {
         "imports": {
@@ -46,24 +40,41 @@ export const template = ({ content }) => `
 </html>
 `;
 
-router.handle("/", () => {
-  return html`<div>
+// top layout
+router.handle("/*", () => {
+  return html`<div class="app">
+    <h1>Website</h1>
     ${nav}
-    <p>Welcome Home!</p>
-    <form action="/search">
-      <input name="query" />
-      <button>go</button>
-    </form>
+    <div id="main"></div>
   </div>`;
 });
 
-router.handle("/about", loadRoute("./about.js"));
+const mountTo = (mountTo, handler) => (context) =>
+  handler(context).then((el) => ({
+    mountTo,
+    el,
+  }));
+
+router.handle("/", (_) => {
+  return {
+    mountTo: "main",
+    el: html`<div>
+      <p>hi</p>
+      <form action="/search">
+        <input name="query" />
+        <button>go</button>
+      </form>
+    </div>`,
+  };
+});
+
+router.handle("/about", mountTo("main", loadRoute("../demo/about.js")));
 
 router.handle("/party/[time]", ({ params }) => {
-  return html`<div>
-    ${nav}
-    <p>Party on, ${params.time}</p>
-  </div>`;
+  return {
+    mountTo: "main",
+    el: html`<p>Party on, ${params.time}</p>`,
+  };
 });
 
-router.handle("/search", loadRoute("./search.js"));
+router.handle("/search", mountTo("main", loadRoute("../demo/search.js")));

@@ -1,74 +1,87 @@
 // fake enough DOM for the `dom()` function to work
 
-const voids = new Set(
-  "area,base,br,col,embed,hr,img,input,link,meta,source,track,wbr".split(",")
-);
+let voids =
+  /^(area|base|br|col|embed|hr|img|input|link|meta|source|track|wbr)$/;
 
-const cn = (el) => el.childNodes;
-const pn = "parentNode";
-const obj = Object;
+let attributes = "attributes";
+let pn = "parentNode";
+let obj = Object;
 
-const nodeMock = {
+let nodeMock = {
   append(...nodes) {
-    for (let n of nodes) {
-      n = n?.nodeType ? n : createTextNode(n?.toString());
-      cn(this).push(n);
+    nodes.map((n) => {
+      n = n?.nodeType ? n : _node(3, { textContent: "" + n });
+      this.c.push(n);
       n[pn] = this;
-    }
+    });
+  },
+  replaceChildren(...nodes) {
+    this.c.map((n) => n.remove());
+    this.append(...nodes);
   },
   setAttribute(a, v) {
-    this.attributes.set(a, v);
+    this[attributes][a] = v;
   },
   removeAttribute(a) {
-    this.attributes.delete(a);
-  },
-  insertBefore(node, ref) {
-    cn(this).splice(cn(this).indexOf(ref), 0, node);
+    delete this[attributes][a];
   },
   remove() {
-    let parentNode = this[pn];
+    let self = this;
+    let parentNode = self[pn];
     if (parentNode) {
-      parentNode.childNodes = cn(parentNode).filter((n) => n !== this);
-      this[pn] = null;
+      parentNode.childNodes = parentNode.c.filter((n) => n !== self);
+      self[pn] = null;
     }
   },
+  get c() {
+    return this.childNodes ?? [];
+  },
   get outerHTML() {
-    let { tagName } = this;
-    switch (this.nodeType) {
-      case 1:
-        return (
-          "<" +
-          tagName +
-          [...this.attributes]
-            .map(([a, v]) => ` ${a}="${v.toString()}"`)
-            .join("") +
-          ">" +
-          cn(this)
-            .map((n) => n.outerHTML)
-            .join("") +
-          (voids.has(tagName) ? "" : `</${tagName}>`)
-        );
-      case 3:
-        return this.textContent;
+    let self = this;
+    let { tagName, nodeType } = self;
+    if (nodeType == 1) {
+      return (
+        "<" +
+        tagName +
+        obj
+          .entries(self[attributes])
+          .map(([a, v]) => " " + a + '="' + v + '"')
+          .join("") +
+        ">" +
+        self.innerHTML +
+        (voids.test(tagName) ? "" : `</${tagName}>`)
+      );
+    }
+    if (nodeType == 3) {
+      return self.textContent;
     }
     return "";
   },
+  get innerHTML() {
+    return this.c.map((n) => n.outerHTML).join("");
+  },
 };
 
-const _node = (props) => obj.assign(obj.create(nodeMock), props);
-const createElement = (tagName) =>
-  _node({
-    nodeType: 1,
-    tagName,
-    attributes: new Map(),
+let _node = (nodeType, props) =>
+  obj.assign(obj.create(nodeMock), { nodeType }, props);
+
+let createElement = (tagName) =>
+  _node(1, {
+    tagName: tagName.toLowerCase(),
+    [attributes]: {},
     childNodes: [],
   });
-const createTextNode = (textContent) => _node({ nodeType: 3, textContent });
-const createComment = (data) => _node({ nodeType: 8, data });
 
-export const document = {
+export default {
   createElement,
-  createTextNode,
-  createComment,
-  body: createElement("body"),
+  // used by ssr instead of getElementById
+  find: (el, id) => {
+    let current,
+      stack = [el];
+    do {
+      current = stack.pop();
+      if (current?.[attributes]?.id == id) return current;
+      stack.push(...(current?.c ?? []));
+    } while (stack.length > 0);
+  },
 };

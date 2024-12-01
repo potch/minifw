@@ -1,0 +1,22 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+html {
+  font: normal 16px sans-serif;
+  font-size: clamp(14px, 4vmin, 20px);
+}
+body {
+  margin: 0;
+}
+nav {
+  display: flex;
+  gap: 0.5rem;
+}
+.app {
+  margin: 0 auto;
+  max-width: 800px;
+  padding: 2rem;
+  display: grid;
+  gap: 1em;
+}

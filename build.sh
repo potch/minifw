@@ -1,6 +1,9 @@
 #!/bin/zsh
 
 OUTPUT="./dist"
+COLSIZE=7
+TABLETEMP=$(mktemp)
+TERMTEMP=$(mktemp)
 
 function len() {
   # strip escape chars
@@ -21,7 +24,9 @@ function pad() {
   fi
 }
 
-# $(( a > b ? a : b ))
+function max() {
+  echo $(( $1 > $2 ? $1 : $2))
+}
 
 function leftright() {
   TEXT_LEN=$(len "$2")
@@ -41,20 +46,24 @@ function build() {
   cat "$OUTPUT/$MINFILE" | gzip > "$OUTPUT/$MINFILE.gz"
   MINSIZE=$(sizeof $OUTPUT/$MINFILE)
   ZIPSIZE=$(sizeof $OUTPUT/$MINFILE.gz)
-  leftright "\e[37;1m$1\e[0m" "orig $(sizeof $1)   min \e[33m$MINSIZE\e[0m   gz \e[33m$ZIPSIZE\e[0m"
-  echo "$1 | $(sizeof $1) | $MINSIZE | $ZIPSIZE" >> sizes.md
+  leftright "\e[37;1m$1\e[0m" "$(pad $(sizeof $1) $COLSIZE 1)$(pad "\e[33m$MINSIZE\e[0m" $COLSIZE 1)$(pad "\e[33m$ZIPSIZE\e[0m" $COLSIZE 1)" >> "$TERMTEMP"
+  echo "$(pad $1 20) | $(pad $(sizeof $1) 9 1) | $(pad $MINSIZE 9 1) | $(pad $ZIPSIZE 6 1)" >> "$TABLETEMP"
 }
 
-
 echo "\nbuilding...\n"
-echo "# file sizes\n" > sizes.md
-echo 'file | original | minified | gzip\n :--- | ---: | ---: | ---: ' >> sizes.md
 
-# npx rollup demo/browser.js --inlineDynamicImports --external="htm" > bundle.js
-
+leftright "file" "$(pad "orig" $COLSIZE 1)$(pad "min" $COLSIZE 1)$(pad "gz" $COLSIZE 1)"
+echo $(printf '-%.0s' {0..$(($COLUMNS - 1))})
 for file in $(ls src/*.js)
 do
-  build "$file"&
+  build "$file" &
 done
 wait
+cat "$TERMTEMP" | sort
+
+echo "# file sizes\n" > sizes.md
+echo "$(pad "file" 20) | $(pad "original" 9 1) | $(pad "minified" 9 1) | $(pad "gzip" 6 1)" >> sizes.md
+echo "$(pad ":---" 20) | $(pad "---:" 9 1) | $(pad "---:" 9 1) | $(pad "---:" 6 1) " >> sizes.md
+cat "$TABLETEMP" | sort >> sizes.md
+
 echo "\ndone!"

@@ -1,4 +1,4 @@
-const router = (routes = []) => ({
+const router = ({ routes = [], handlerFactory = (h) => h } = {}) => ({
   handle(path, handler) {
     const pattern =
       path instanceof RegExp
@@ -14,14 +14,13 @@ const router = (routes = []) => ({
     routes.push({
       path,
       pattern,
-      handler,
+      handler: handlerFactory(handler),
     });
   },
 
   route: (path) =>
     routes.reduce((list, route) => {
       const match = route.pattern.exec(path);
-      console.log(list, route, match);
       return match ? [...list, { ...route, params: match.groups }] : list;
     }, []),
 });

@@ -1,38 +1,52 @@
-import { on, event } from "../src/fw.js";
+import { $, on, event } from "../src/fw.js";
 
 on(window, "DOMContentLoaded", async () => {
   const { router } = await import("./app.js");
 
   const activeMounts = new WeakMap();
 
-  const navigate = async (url, e) => {
+  const navigate = async (url, didPop = false) => {
     const routes = router.route(url.pathname);
 
-    if (routes.length) {
+    for await (let route of routes) {
       const [emitOnMount, onMount] = event();
-      const { params, handler } = routes[0];
-      const result = await handler({ params, onMount, url });
-      const el = document.body;
-      const currentMounts = activeMounts.get(el) || [];
-      while (currentMounts.length) {
-        currentMounts.pop()?.call?.();
+      const { params, handler } = route;
+      let result = await handler({ params, onMount, url });
+      if (!result) continue;
+      if (result.tagName) {
+        result = {
+          mountTo: "app",
+          el: result,
+        };
       }
-      el.replaceChildren(result);
-      history.pushState({}, "", url);
-      activeMounts.set(el, emitOnMount().flat(Infinity));
+
+      const mountEl = document.getElementById(result.mountTo) ?? document.body;
+      if (mountEl) {
+        const currentMounts = activeMounts.get(mountEl) || [];
+        while (currentMounts.length) {
+          currentMounts.pop()?.call?.();
+        }
+        mountEl.replaceChildren(result.el);
+        setTimeout(() => {
+          activeMounts.set(mountEl, emitOnMount().flat(Infinity));
+        }, 0);
+      }
+      if (!didPop) {
+        history.pushState({}, "", url);
+      }
     }
   };
 
-  on(document.body, "click", async (e) => {
+  on(document.body, "click", (e) => {
     if (e.target.href) {
       e.preventDefault();
-      await navigate(new URL(e.target.href));
+      navigate(new URL(e.target.href));
     }
   });
 
   on(window, "popstate", () => {
-    navigate(new URL(window.location));
+    navigate(new URL(window.location), true);
   });
 
-  navigate(new URL(window.location));
+  navigate(new URL(window.location), true);
 });
