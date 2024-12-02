@@ -1,4 +1,4 @@
-import { $, on, event } from "../src/fw.js";
+import { on, event } from "../src/fw.js";
 
 on(window, "DOMContentLoaded", async () => {
   const { router } = await import("./app.js");
@@ -8,6 +8,9 @@ on(window, "DOMContentLoaded", async () => {
   const navigate = async (url, didPop = false) => {
     const routes = router.route(url.pathname);
 
+    if (!didPop) {
+      history.pushState({}, "", url);
+    }
     for await (let route of routes) {
       const [emitOnMount, onMount] = event();
       const { params, handler } = route;
@@ -30,9 +33,6 @@ on(window, "DOMContentLoaded", async () => {
         setTimeout(() => {
           activeMounts.set(mountEl, emitOnMount().flat(Infinity));
         }, 0);
-      }
-      if (!didPop) {
-        history.pushState({}, "", url);
       }
     }
   };
