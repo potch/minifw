@@ -14,7 +14,7 @@ let setProp = (el, key, value) => {
   // if el[key] is object, deep merge it, else set it.
   if (key == "ref") {
     value.val = el;
-  } else if (isObj(value) || key in el) {
+  } else if (value.call || isObj(value) || key in el) {
     el[key] && isObj(el[key])
       ? assign(el[key], value)
       : (el[key] = value === null ? "" : value);
@@ -122,7 +122,7 @@ let computed = (fn) => {
   };
 };
 
-let $ = (selector, scope = doc) => scope.querySelector(selector);
-let $$ = (selector, scope = doc) => scope.querySelectorAll(selector);
+// let $ = (selector, scope = doc) => scope.querySelector(selector);
+// let $$ = (selector, scope = doc) => scope.querySelectorAll(selector);
 
-export { $, $$, assign, dom, on, event, signal, computed, effect };
+export { assign, dom, on, event, signal, computed, effect };

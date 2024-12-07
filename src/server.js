@@ -1,4 +1,5 @@
 import { Server as httpServer } from "node:http";
+import { readFile } from "node:fs/promises";
 import router from "./router.js";
 
 const isRE = (o, fallback) => (o instanceof RegExp ? o : fallback);
@@ -23,6 +24,11 @@ class Server extends httpServer {
       req.on("end", () => resolve(Buffer.concat(chunks)));
     });
 
+    res.sendFile = (path, type) => {
+      res.setHeader("content-type", type ?? "text/plain");
+      return readFile(path).then((b) => res.end(b.toString("utf8")));
+    };
+
     for (let { handler, params } of matches) {
       req.params = params;
       await handler?.(req, res);
@@ -39,8 +45,10 @@ class Server extends httpServer {
   }
 
   listen() {
-    return new Promise((ready) => super.listen(this.host.port, ready));
+    return new Promise((ready) =>
+      super.listen(this.host.port, () => ready(this))
+    );
   }
 }
 
-export { router, Server };
+export default Server;

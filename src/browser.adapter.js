@@ -1,7 +1,7 @@
-import { on, event } from "../src/fw.js";
+import { on, event } from "./fw.js";
 
-on(window, "DOMContentLoaded", async () => {
-  const { router } = await import("./app.js");
+export default async (entrypoint) => {
+  const { router } = await import(entrypoint);
 
   const activeMounts = new WeakMap();
 
@@ -49,4 +49,4 @@ on(window, "DOMContentLoaded", async () => {
   });
 
   navigate(new URL(window.location), true);
-});
+};

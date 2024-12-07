@@ -15,7 +15,14 @@ const loadRoute =
 
 export const host = new URL("http://localhost:8080/");
 
-export const router = createRouter();
+export const onServer = (server) =>
+  server.get("/@htm", (_, res) =>
+    res.sendFile("./node_modules/htm/dist/htm.mjs", "text/javascript")
+  );
+
+export const onReady = (server) => {
+  console.log("check it out", server.host.href);
+};
 
 export const template = ({ content }) => `
 <!DOCTYPE html>
@@ -28,17 +35,22 @@ export const template = ({ content }) => `
     <script type="importmap">
       {
         "imports": {
-          "htm": "/node_modules/htm/dist/htm.mjs"
+          "htm": "/@htm"
         }
       }
     </script>
-    <script type="module" src="/demo/browser.js"></script>
+    <script type="module">
+      import start from "/src/browser.adapter.js"
+      start('/demo/app.js')
+    </script>
   </head>
   <body>
     ${content}
   </body>
 </html>
 `;
+
+export const router = createRouter();
 
 // top layout
 router.handle("/*", () => {

@@ -5,11 +5,10 @@
   "main": "src/fw.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
     "start": "npx onchange -ik src/*.js build.sh 'demo/*' -- npm run go",
-    "go": "./build.sh && node demo/server.js",
-    "demo": "tinyserve . -w index.min.js",
-    "server": "npx onchange -ik 'demo/*' -- node demo/server.js"
+    "go": "./build.sh && node src/server.adapter.js ../demo/app.js",
+    "demo": "tinyserve . -w index.min.js"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +18,7 @@
     "htm": "^3.1.1",
     "onchange": "^7.1.0",
     "rollup": "^4.27.4",
-    "terser": "^5.29.1"
+    "terser": "^5.29.1",
+    "vitest": "^2.1.6"
   }
 }

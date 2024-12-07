@@ -23,6 +23,10 @@ const router = ({ routes = [], handlerFactory = (h) => h } = {}) => ({
       const match = route.pattern.exec(path);
       return match ? [...list, { ...route, params: match.groups }] : list;
     }, []),
+
+  get routes() {
+    return routes;
+  },
 });
 
 export default router;

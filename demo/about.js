@@ -1,7 +1,7 @@
 import { signal, effect, on } from "../src/fw.js";
 import html from "./html.js";
 
-export default ({ onMount }) => {
+export default async ({ onMount }) => {
   const count = signal(1);
   const counter = signal();
   const button = signal();
