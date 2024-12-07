@@ -1,6 +1,6 @@
 {
   "name": "@potch/minifw",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "dinky libraries for dinky apps",
   "main": "src/fw.js",
   "type": "module",
