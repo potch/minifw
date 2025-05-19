@@ -1,3 +1,5 @@
+// work-in-progress tiny lisp thing. don't use even more than the rest of this stuff
+
 const IDENT = "ident";
 const NUMBER = "num";
 const STRING = "str";

@@ -1,11 +1,13 @@
-// used for computed/effect bookkeeping
-let context = 0;
-
 // file size optimizations
 let doc = document;
+let val = "value";
+let _null = null;
 let call = (fn) => fn();
 let isObj = (o) => typeof o === "object";
 let map = (a, fn) => [...a].map(fn);
+
+// used for computed/effect bookkeeping
+let context = _null;
 
 // credit to @developit/preact for logic here
 let setProp = (el, key, value) => {
@@ -13,15 +15,15 @@ let setProp = (el, key, value) => {
   // is value a function, object, or is the key an extant prop?
   // if el[key] is object, deep merge it, else set it.
   if (key == "ref") {
-    value.val = el;
+    value[val] = el;
   } else if (value.call || isObj(value) || key in el) {
     el[key] && isObj(el[key])
       ? assign(el[key], value)
-      : (el[key] = value === null ? "" : value);
+      : (el[key] = value === _null ? "" : value);
   } else {
     // treat as attribute
     // set if value not null and either not false or prop is `data-` or `aria-`
-    if (value !== null && (value !== false || key[4] == "-")) {
+    if (value !== _null && (value !== false || key[4] == "-")) {
       el.setAttribute(key, value);
     } else {
       el.removeAttribute(key);
@@ -66,15 +68,15 @@ let event = (watchers = new Set()) => [
   },
 ];
 
-// reactive value primitive
+// reactive value primitive, notifies when .value changes
 let signal = (value, [emit, watch] = event()) => ({
-  set val(v) {
+  set [val](v) {
     if (value !== v) {
       value = v;
       emit();
     }
   },
-  get val() {
+  get [val]() {
     // if we're in an effect callback, register as a dep
     if (context) {
       context.add(this);
@@ -103,26 +105,20 @@ let effect = (fn) => {
       }
     })
   );
-  context = false;
+  context = _null;
 
   return (_) => map(teardown, call);
 };
 
 // derived reactive value, composition of a signal and an effect
 // auto updates when any signal referenced in `fn` by `.value` changes
-let computed = (fn) => {
-  let s = signal();
-  effect((_) => (s.val = fn()));
-  return {
-    get val() {
-      return s.val;
-    },
-    peek: s.peek,
-    watch: s.watch,
-  };
+let computed = (fn, value) => {
+  let s = signal(value);
+  effect((_) => (s[val] = fn(s[val])));
+  return s;
 };
 
-// let $ = (selector, scope = doc) => scope.querySelector(selector);
-// let $$ = (selector, scope = doc) => scope.querySelectorAll(selector);
+let $ = (selector, scope = doc) => scope.querySelector(selector);
+let $$ = (selector, scope = doc) => scope.querySelectorAll(selector);
 
-export { assign, dom, on, event, signal, computed, effect };
+export { assign, dom, on, event, signal, computed, effect, $, $$ };

@@ -4,7 +4,7 @@ import html from "./html.js";
 import nav from "./nav.js";
 
 const loadingRoutes = {};
-const loadRoute =
+const lazyRoute =
   (file) =>
   async (...args) => {
     if (!loadingRoutes[file]) {
@@ -80,13 +80,23 @@ router.handle("/", (_) => {
   };
 });
 
-router.handle("/about", mountTo("main", loadRoute("../demo/about.js")));
+router.handle("/about", mountTo("main", lazyRoute("../demo/about.js")));
 
 router.handle("/party/[time]", ({ params }) => {
   return {
     mountTo: "main",
-    el: html`<p>Party on, ${params.time}</p>`,
+    el: html`<div>
+      <p>Party on, ${params.time}</p>
+      <span id="special">foo</span>
+    </div>`,
   };
 });
 
-router.handle("/search", mountTo("main", loadRoute("../demo/search.js")));
+router.handle("/party/special", ({ params }) => {
+  return {
+    mountTo: "special",
+    el: html`SECRET FOUND`,
+  };
+});
+
+router.handle("/search", mountTo("main", lazyRoute("../demo/search.js")));

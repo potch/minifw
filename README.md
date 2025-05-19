@@ -6,7 +6,7 @@ use at your own risk.
 
 - **fw.js**: baseline library for dom generation and reactivity
 - **channel.js** - client and server wrappers of a Server-Sent Events channel
-- **lisp.js** - an s-expression language
+- **lang.js** - an s-expression language
 - **router.js** - a basic router
 - **server.js** - an express-like http server
 - **ssr.js** - just enough fake DOM for `fw.js` to work in non-browser contexts

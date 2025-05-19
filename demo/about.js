@@ -7,11 +7,11 @@ export default async ({ onMount }) => {
   const button = signal();
 
   onMount(() => [
-    on(button.val, "click", () => {
-      count.val++;
+    on(button.value, "click", () => {
+      count.value++;
     }),
     effect(() => {
-      counter.val.innerText = " " + count.val;
+      counter.value.innerText = " " + count.value;
     }),
   ]);
 
@@ -20,7 +20,7 @@ export default async ({ onMount }) => {
       <p>About</p>
       <div>
         <button ref=${button}>inc</button>
-        <span ref=${counter}> ${count.val}</span>
+        <span ref=${counter}> ${count.value}</span>
       </div>
     </div>
   `;

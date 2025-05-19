@@ -54,17 +54,17 @@ describe("fw", () => {
     });
 
     it("can get value", () => {
-      expect(s.val).toBe(1);
+      expect(s.value).toBe(1);
     });
     it("can update value", () => {
-      expect(s.val).toBe(1);
-      s.val = 2;
-      expect(s.val).toBe(2);
+      expect(s.value).toBe(1);
+      s.value = 2;
+      expect(s.value).toBe(2);
     });
     it("watches", () => {
       const fn = vi.fn();
       s.watch(fn);
-      s.val = 2;
+      s.value = 2;
       expect(fn).toHaveBeenCalled();
     });
     it("peeks", () => {
@@ -74,7 +74,7 @@ describe("fw", () => {
       const fn = vi.fn();
       const unwatch = s.watch(fn);
       unwatch();
-      s.val = 2;
+      s.value = 2;
       expect(fn).not.toHaveBeenCalled();
     });
   });
@@ -87,42 +87,42 @@ describe("fw", () => {
     });
     it("runs once", () => {
       const fn = vi.fn();
-      effect(() => fn(s1.val + s2.val));
+      effect(() => fn(s1.value + s2.value));
       expect(fn).toHaveBeenCalledWith(3);
     });
     it("runs on change", () => {
       const fn = vi.fn();
-      effect(() => fn(s1.val + s2.val));
+      effect(() => fn(s1.value + s2.value));
       expect(fn).toHaveBeenCalledWith(3);
-      s1.val = 3;
+      s1.value = 3;
       expect(fn).toHaveBeenCalledWith(5);
     });
     it("peeks", () => {
       const fn = vi.fn();
-      effect(() => fn(s1.peek() + s2.val));
+      effect(() => fn(s1.peek() + s2.value));
       expect(fn).toHaveBeenCalledWith(3);
-      s1.val = 3;
+      s1.value = 3;
       expect(fn).toHaveBeenCalledTimes(1);
-      s2.val = 3;
+      s2.value = 3;
       expect(fn).toHaveBeenCalledTimes(2);
     });
     it("un-watches", () => {
       const fn = vi.fn();
-      const unwatch = effect(() => fn(s1.val + s2.val));
+      const unwatch = effect(() => fn(s1.value + s2.value));
       expect(fn).toHaveBeenCalledWith(3);
-      s1.val = 3;
+      s1.value = 3;
       expect(fn).toHaveBeenCalledWith(5);
       unwatch();
-      s1.val = 6;
+      s1.value = 6;
       expect(fn).toHaveBeenCalledTimes(2);
     });
     it("cycle protects", () => {
       const fn = vi.fn();
       effect(() => {
-        s1.val++;
-        fn(s1.val + s2.val);
+        s1.value++;
+        fn(s1.value + s2.value);
       });
-      s2.val++;
+      s2.value++;
       expect(fn).toHaveBeenCalledTimes(2);
     });
   });
@@ -132,27 +132,27 @@ describe("fw", () => {
     beforeEach(() => {
       s1 = signal(1);
       s2 = signal(2);
-      c = computed(() => s1.val + s2.val);
+      c = computed(() => s1.value + s2.value);
     });
     it("has value", () => {
-      expect(c.val).toBe(3);
+      expect(c.value).toBe(3);
     });
     it("updates value", () => {
-      s1.val = 3;
-      expect(c.val).toBe(5);
+      s1.value = 3;
+      expect(c.value).toBe(5);
     });
     it("works with effects", () => {
       const fn = vi.fn();
       const s3 = signal(4);
       effect(() => {
-        fn(c.val + s3.val);
+        fn(c.value + s3.value);
       });
       expect(fn).toHaveBeenCalledWith(7);
     });
     it("watches", () => {
       const fn = vi.fn();
       c.watch(fn);
-      s1.val = 2;
+      s1.value = 2;
       expect(fn).toHaveBeenCalled();
     });
     it("peeks", () => {
@@ -162,7 +162,7 @@ describe("fw", () => {
       const fn = vi.fn();
       const unwatch = c.watch(fn);
       unwatch();
-      s1.val = 2;
+      s1.value = 2;
       expect(fn).not.toHaveBeenCalled();
     });
   });
@@ -181,7 +181,7 @@ describe("fw", () => {
       expect(el.setAttribute).toHaveBeenCalledTimes(1);
       expect(el.setAttribute).toHaveBeenCalledWith("data-test", 1);
       expect(el.a).toBe(fn);
-      expect(s.val).toBe(el);
+      expect(s.value).toBe(el);
       expect(el.o).toStrictEqual({ a: 1 });
     });
   });
