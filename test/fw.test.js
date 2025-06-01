@@ -184,5 +184,19 @@ describe("fw", () => {
       expect(s.value).toBe(el);
       expect(el.o).toStrictEqual({ a: 1 });
     });
+    it("binds signals", () => {
+      const fn = vi.fn();
+      const s = signal("foo");
+      const el = dom("test", { id: s });
+      expect(document.createElement).toHaveBeenCalledWith("test");
+      expect(el.setAttribute).toHaveBeenCalledTimes(1);
+      expect(el.setAttribute).toHaveBeenCalledWith("id", "foo");
+      s.value = "bar";
+      expect(el.setAttribute).toHaveBeenCalledTimes(2);
+      expect(el.setAttribute).toHaveBeenCalledWith("id", "bar");
+      s.value = false;
+      expect(el.removeAttribute).toHaveBeenCalledTimes(1);
+      expect(el.removeAttribute).toHaveBeenCalledWith("id");
+    });
   });
 });
