@@ -64,7 +64,7 @@ let effect = (fn) => {
 let computed = (fn, value) =>
   tee(signal(value), (s) => effect((_) => (s[val] = fn(s[val]))));
 
-let [onEffect, emitEffect] = event();
+let [emitEffect, onEffect] = event();
 
 // credit to @developit/preact for logic here
 let setProp = (el, key, value) => {

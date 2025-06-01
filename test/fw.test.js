@@ -1,5 +1,13 @@
 import { describe } from "vitest";
-import { assign, event, signal, computed, effect, dom } from "../src/fw.js";
+import {
+  assign,
+  event,
+  signal,
+  computed,
+  effect,
+  dom,
+  onEffect,
+} from "../src/fw.js";
 
 describe("fw", () => {
   describe("assign", () => {
@@ -185,7 +193,6 @@ describe("fw", () => {
       expect(el.o).toStrictEqual({ a: 1 });
     });
     it("binds signals", () => {
-      const fn = vi.fn();
       const s = signal("foo");
       const el = dom("test", { id: s });
       expect(document.createElement).toHaveBeenCalledWith("test");
@@ -197,6 +204,14 @@ describe("fw", () => {
       s.value = false;
       expect(el.removeAttribute).toHaveBeenCalledTimes(1);
       expect(el.removeAttribute).toHaveBeenCalledWith("id");
+    });
+    it("captures effects", () => {
+      const fn = vi.fn();
+      const s = signal("foo");
+      const s2 = signal("bar");
+      onEffect(fn);
+      const el = dom("test", { id: s, name: s2 });
+      expect(fn).toHaveBeenCalledTimes(2);
     });
   });
 });
