@@ -1,31 +1,36 @@
 // work-in-progress tiny lisp thing. don't use even more than the rest of this stuff
 
-const IDENT = "ident";
-const NUMBER = "num";
-const STRING = "str";
-const BOOL = "bool";
-const OPEN = "(";
-const CLOSE = ")";
-const EXPR = "expr";
-const NIL = { type: "nil" };
-const numberRE = /^-?[0-9][0-9]*\.?[0-9]*$/;
-const whitespaceRE = /^\s$/;
+let IDENT = "ident";
+let NUMBER = "num";
+let STRING = "str";
+let BOOL = "bool";
+let OPEN = "(";
+let CLOSE = ")";
+let EXPR = "expr";
+let NIL = { type: "nil" };
+let numberRE = /^-?[0-9][0-9]*\.?[0-9]*$/;
+let whitespaceRE = /^\s$/;
+let _null = null;
 
-const makeToken = (type) => {
-  if (!token) return null;
+let token = "";
+let inQuotes = false;
+
+let makeToken = (type) => {
+  if (!token) return _null;
   if (type) return { type, value: token };
   if (numberRE.test(token)) {
     return {
       type: NUMBER,
       value: parseFloat(token),
     };
-  } else if (token == "true" || token == "false") {
+  }
+  if (/^(true|false)$/.test(token)) {
     return { type: BOOL, value: token == "true" };
   }
   return { type: IDENT, value: token };
 };
 
-const maybeToken = (type) => {
+let maybeToken = (type) => {
   let t = makeToken(type);
   if (t) {
     token = "";
@@ -33,10 +38,7 @@ const maybeToken = (type) => {
   return t;
 };
 
-let token = "";
-let inQuotes = false;
-
-const tokenize = (s) =>
+let tokenize = (s) =>
   [...s]
     .map((c) => {
       if (inQuotes) {
@@ -44,6 +46,8 @@ const tokenize = (s) =>
           inQuotes = false;
           return maybeToken(STRING);
         }
+        token += c;
+        return _null;
       } else {
         if (c == '"') {
           inQuotes = true;
@@ -58,23 +62,23 @@ const tokenize = (s) =>
         if (whitespaceRE.test(c)) {
           return maybeToken();
         }
+        token += c;
+        return _null;
       }
-      token += c;
     })
     .flat(Infinity)
     .filter((t) => t);
 
-const parse = (tokens) => {
+let parse = (tokens) => {
   let pos = 0;
   let next = tokens[pos];
-  const consume = (type) => {
-    const token = next;
-    next = tokens[++pos];
-    return token;
+  let consume = () => {
+    next = tokens[pos + 1];
+    return tokens[pos++];
   };
-  const parseExpr = () => {
+  let parseExpr = () => {
+    let args = [];
     consume(OPEN);
-    const args = [];
     while (next.type !== CLOSE) {
       args.push(next.type === OPEN ? parseExpr() : consume(next.type));
     }
@@ -87,24 +91,26 @@ const parse = (tokens) => {
   return parseExpr();
 };
 
-const evaluate = async (expr, stack = []) => {
+let evaluate = async (expr, stack = []) => {
   if (!expr) return NIL;
   let context;
 
-  const get = (ident, offset) =>
+  let get = (ident, offset) =>
     stack.slice(offset).find((frame) => frame[ident])?.[ident];
 
-  const val = (x) => evaluate(x, [{}, ...stack]);
+  let val = (x) => evaluate(x, [{}, ...stack]);
+  let raw = async (x) => (await val(x)).value;
 
   if (expr.type === EXPR) {
-    const [method, ...args] = expr.args;
-    const value = await val(method);
+    let [method, ...args] = expr.args;
+    let value = await val(method);
     if (value?.call) {
       context = {
         stack,
         args,
         get,
         val,
+        raw,
       };
       return (await value(context)) ?? NIL;
     }
@@ -116,6 +122,6 @@ const evaluate = async (expr, stack = []) => {
   return expr;
 };
 
-const run = (prog, stack) => evaluate(parse(tokenize(prog)), stack);
+let run = (prog, stack) => evaluate(parse(tokenize(prog)), stack);
 
-export { run, evaluate };
+export { run, parse, tokenize, evaluate };
