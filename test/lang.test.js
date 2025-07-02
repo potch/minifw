@@ -29,19 +29,27 @@ describe("lang", () => {
   describe("evaluation", () => {
     it("accesses provided scope", async () => {
       const fn = vi.fn(run);
+
       const add = async ({ args, raw }) =>
-        Promise.all(args.map(raw)).then(([a, b]) => a + b);
-      const result = await fn("(log (add 1 2))", [
+        Promise.all(args.map(raw)).then(([a, b]) => ({
+          type: "num",
+          value: a + b,
+        }));
+
+      const mul = async ({ args, raw }) =>
+        Promise.all(args.map(raw)).then(([a, b]) => ({
+          type: "num",
+          value: a * b,
+        }));
+
+      const result = await fn("(* (+ 1 2) 4)", [
         {
-          add,
-          log: ({ args, val }) => {
-            const x = val(args[0]);
-            x.then((v) => console.log(v));
-            return x;
-          },
+          "+": add,
+          "*": mul,
         },
       ]);
-      expect(result).toBe(3);
+
+      expect(result).toStrictEqual({ type: "num", value: 12 });
     });
   });
 });

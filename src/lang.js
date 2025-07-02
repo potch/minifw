@@ -93,31 +93,32 @@ let parse = (tokens) => {
 
 let evaluate = async (expr, stack = []) => {
   if (!expr) return NIL;
-  let context;
 
   let get = (ident, offset) =>
     stack.slice(offset).find((frame) => frame[ident])?.[ident];
 
   let val = (x) => evaluate(x, [{}, ...stack]);
-  let raw = async (x) => (await val(x)).value;
+  let raw = (x) => val(x).then((x) => x.value);
 
-  if (expr.type === EXPR) {
-    let [method, ...args] = expr.args;
-    let value = await val(method);
-    if (value?.call) {
-      context = {
-        stack,
-        args,
-        get,
-        val,
-        raw,
-      };
-      return (await value(context)) ?? NIL;
+  let { type, value, args } = expr;
+
+  if (type === EXPR) {
+    let x = await val(args[0]);
+    if (x?.call) {
+      return (
+        (await x({
+          stack,
+          args: args.slice(1),
+          get,
+          val,
+          raw,
+        })) ?? NIL
+      );
     }
-    return value;
+    return x;
   }
-  if (expr.type === IDENT) {
-    return get(expr.value);
+  if (type === IDENT) {
+    return get(value);
   }
   return expr;
 };
