@@ -7,7 +7,9 @@ import {
   effect,
   dom,
   onEffect,
-} from "../src/fw.js";
+  using,
+  collect,
+} from "../src/munifw.js";
 
 describe("fw", () => {
   describe("assign", () => {
@@ -133,6 +135,36 @@ describe("fw", () => {
       s2.value++;
       expect(fn).toHaveBeenCalledTimes(2);
     });
+    it("independent nested effects", () => {
+      const s1 = signal(1);
+      const s2 = signal(2);
+      const fn1 = vi.fn();
+      const fn2 = vi.fn();
+
+      effect(() => {
+        fn1();
+        effect(() => {
+          fn2();
+        }, s2);
+      }, s1);
+
+      s2.value = 3;
+      expect(fn1).toHaveBeenCalledTimes(1);
+      expect(fn2).toHaveBeenCalledTimes(2);
+    });
+    it("inner effects", () => {
+      const fn = vi.fn();
+      const s2 = signal(1);
+      const innerEffects = collect(onEffect, () =>
+        effect((effect) => {
+          effect(fn, s2);
+        })
+      );
+      s2.value = 2;
+      while (innerEffects.length) innerEffects.pop()();
+      s2.value = 3;
+      expect(fn).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe("computed", () => {
@@ -183,7 +215,15 @@ describe("fw", () => {
       expect(document.createElement).toHaveBeenCalledWith("div");
       expect(el.append).toHaveBeenCalledWith(2, 3, 4);
     });
-
+    it("creates with optional props", () => {
+      const el = dom("div");
+      expect(document.createElement).toHaveBeenCalledWith("div");
+    });
+    it("creates with optional props and children", () => {
+      const el = dom("div", "hello", child);
+      expect(document.createElement).toHaveBeenCalledWith("div");
+      expect(el.append).toHaveBeenCalledWith("hello", child);
+    });
     it("sets attributes", () => {
       const fn = vi.fn();
       const s = signal();

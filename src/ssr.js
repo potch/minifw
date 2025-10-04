@@ -5,18 +5,27 @@ let voids =
 
 let attributes = "attributes";
 let pn = "parentNode";
+let cn = "childNodes";
 let obj = Object;
+let mapCn = (el, fn) => el[cn].map(fn);
 
 let nodeMock = {
   append(...nodes) {
     nodes.map((n) => {
       n = n?.nodeType ? n : _node(3, { textContent: "" + n });
-      this.c.push(n);
+      this[cn].push(n);
       n[pn] = this;
     });
   },
+  replaceWith(node) {
+    let parentNode = this[pn];
+    if (parentNode) {
+      parentNode[cn] = mapCn(parentNode, (n) => (n == this ? node : n));
+      node[pn] = parentNode;
+    }
+  },
   replaceChildren(...nodes) {
-    this.c.map((n) => n.remove());
+    mapCn(this, (n) => n.remove());
     this.append(...nodes);
   },
   setAttribute(a, v) {
@@ -29,12 +38,9 @@ let nodeMock = {
     let self = this;
     let parentNode = self[pn];
     if (parentNode) {
-      parentNode.childNodes = parentNode.c.filter((n) => n !== self);
+      parentNode[cn] = parentNode[cn].filter((n) => n != self);
       self[pn] = null;
     }
-  },
-  get c() {
-    return this.childNodes ?? [];
   },
   get outerHTML() {
     let self = this;
@@ -45,7 +51,7 @@ let nodeMock = {
         tagName +
         obj
           .entries(self[attributes])
-          .map(([a, v]) => " " + a + '="' + v + '"')
+          .map((a) => ` ${a[0]}="${a[1]}"`)
           .join("") +
         ">" +
         self.innerHTML +
@@ -58,7 +64,7 @@ let nodeMock = {
     return "";
   },
   get innerHTML() {
-    return this.c.map((n) => n.outerHTML).join("");
+    return mapCn(this, (n) => n.outerHTML).join("");
   },
 };
 
@@ -69,7 +75,7 @@ let createElement = (tagName) =>
   _node(1, {
     tagName: tagName.toLowerCase(),
     [attributes]: {},
-    childNodes: [],
+    [cn]: [],
   });
 
 export default {
@@ -81,7 +87,9 @@ export default {
     do {
       current = stack.pop();
       if (current?.[attributes]?.id == id) return current;
-      stack.push(...(current?.c ?? []));
-    } while (stack.length > 0);
+      if (current) {
+        stack.push(...current[cn]);
+      }
+    } while (stack.length);
   },
 };

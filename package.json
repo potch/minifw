@@ -5,9 +5,9 @@
   "main": "src/fw.js",
   "type": "module",
   "scripts": {
-    "test": "vitest",
+    "test": "vitest run",
     "start": "npx onchange -ik src/*.js build.sh 'demo/*' -- npm run go",
-    "go": "./build.sh && node src/server.adapter.js ../demo/app.js",
+    "go": "npm test && ./build.sh && node src/server.adapter.js ../demo/app.js",
     "demo": "tinyserve . -w index.min.js"
   },
   "keywords": [],
