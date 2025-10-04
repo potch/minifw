@@ -67,3 +67,4 @@ echo "$(pad ":---" 20) | $(pad "---:" 9 1) | $(pad "---:" 9 1) | $(pad "---:" 6 
 cat "$TABLETEMP" | sort >> sizes.md
 
 echo "\ndone!"
+exit 0

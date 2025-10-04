@@ -8,7 +8,8 @@
     "test": "vitest run",
     "start": "npx onchange -ik src/*.js build.sh 'demo/*' -- npm run go",
     "go": "npm test && ./build.sh && node src/server.adapter.js ../demo/app.js",
-    "demo": "tinyserve . -w index.min.js"
+    "demo": "tinyserve . -w index.min.js",
+    "marky": "./build.sh && node src/marky.js"
   },
   "keywords": [],
   "author": "",
