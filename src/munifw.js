@@ -26,12 +26,12 @@ export const event = (watchers = new Set()) => [
 const context = [];
 
 // reactive value primitive, notifies when .value changes
-export const signal = (value) => {
+export const signal = (value, eq = (a, b) => a === b) => {
   // create event bus
   const [emit, watch] = event();
   return {
     set [val](v) {
-      if (value !== v) {
+      if (!eq(value, v)) {
         value = v;
         emit();
       }

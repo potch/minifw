@@ -7,7 +7,7 @@ src/channel.js       |      1351 |       785 |    441
 src/fw.js            |      3260 |       946 |    572
 src/lang.js          |      2647 |       952 |    559
 src/marky.js         |      4622 |      1349 |    822
-src/munifw.js        |      5176 |      1636 |    812
+src/munifw.js        |      5202 |      1656 |    818
 src/router.js        |       769 |       386 |    281
 src/search.js        |      2485 |      1331 |    727
 src/server.adapter.js    |      1807 |       989 |    600

@@ -87,6 +87,15 @@ describe("fw", () => {
       s.value = 2;
       expect(fn).not.toHaveBeenCalled();
     });
+    it("compares", () => {
+      const fn = vi.fn();
+      const s = signal({ a: 1 }, (a, b) => a.a === b.a);
+      s.watch(fn);
+      s.value = { a: 2 };
+      expect(fn).toHaveBeenCalled();
+      s.value = { a: 2, b: 1 };
+      expect(fn).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("effect", () => {
